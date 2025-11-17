@@ -10,7 +10,7 @@ cffi==2.0.0
 chardet==5.2.0
 charset-normalizer==3.4.4
 colorama==0.4.6
-contourpy==1.3.3
+contourpy==1.2.1
 cycler==0.12.1
 decorator==5.2.1
 deepface==0.0.90
@@ -118,5 +118,6 @@ webcolors==25.10.0
 Werkzeug==3.1.3
 wrapt==1.14.2
 wsproto==1.3.1
+
 
 
