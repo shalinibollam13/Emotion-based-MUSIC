@@ -10,13 +10,13 @@ cffi==2.0.0
 chardet==5.2.0
 charset-normalizer==3.4.4
 colorama==0.4.6
-contourpy==1.2.1
+contourpy==1.3.3
 cycler==0.12.1
 decorator==5.2.1
 deepface==0.0.90
 facenet-pytorch==2.6.0
 ffmpeg==1.4
-filelock==3.20.0
+filelock==3.19.1
 fire==0.7.1
 Flask==2.3.3
 flask-cors==6.0.1
@@ -118,6 +118,7 @@ webcolors==25.10.0
 Werkzeug==3.1.3
 wrapt==1.14.2
 wsproto==1.3.1
+
 
 
 
