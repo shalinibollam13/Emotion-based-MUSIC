@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | Dynamic Music Controller</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --spotify-green: #1DB954;
+            --spotify-dark: #191414;
+            --card-bg: #282828;
+            --light-text: #FFFFFF;
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            --border-radius: 12px;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: linear-gradient(135deg, #0f2027, #2c5364);
+            color: var(--light-text);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .login-box {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+
+        h1 {
+            color: var(--spotify-green);
+            margin-bottom: 10px;
+            font-size: 2em;
+        }
+
+        p {
+            margin-bottom: 30px;
+            font-size: 1.1em;
+            opacity: 0.8;
+        }
+
+        .login-button {
+            display: inline-block;
+            padding: 15px 30px;
+            border-radius: 50px;
+            background: var(--spotify-green);
+            color: var(--spotify-dark);
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.2em;
+            transition: 0.3s;
+        }
+
+        .login-button:hover {
+            background: #1ed760;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(29, 185, 84, 0.5);
+        }
+    </style>
+</head>
+<body>
+    <div class="login-box">
+        <h1>Dynamic Music Controller</h1>
+        <p>Log in with your Spotify account to activate gesture and mood controls.</p>
+        
+        <a href="{{ url_for('spotify_login') }}" class="login-button">
+            LOGIN WITH SPOTIFY
+        </a>
+    </div>
+</body>
+</html>
