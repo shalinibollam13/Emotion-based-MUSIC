@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Mood DJ — Vision & Gesture Controlled Spotify</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ------------------------ BASE STYLES ------------------------ */
+    body {
+      margin: 0;
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(to right, #0f2027, #203a43, #2c5364);
+      color: #fff;
+    }
+
+    header {
+      padding: 15px;
+      text-align: center;
+      font-size: 2rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #29b6f6, #ba68c8, #fbc02d);
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      animation: gradientMove 5s infinite;
+    }
+
+    @keyframes gradientMove {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+
+    .container {
+      display: flex;
+      flex-direction: row;
+      min-height: 80vh;
+      padding: 30px;
+    }
+
+    .left, .right {
+      flex: 1;
+      padding: 20px;
+      border-radius: 15px;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(8px);
+      margin: 10px;
+      box-shadow: 0 0 15px rgba(41,182,246,0.2);
+    }
+    
+    /* ------------------------ VIDEO/VISION ------------------------ */
+    .video-overlay {
+      position: relative;
+      margin-top: 20px;
+    }
+
+    video {
+      width: 100%;
+      height: auto;
+      min-height: 300px;
+      border-radius: 10px;
+      box-shadow: 0 0 20px rgba(41,182,246,0.5);
+      transform: scaleX(-1); /* Flip video for natural mirroring */
+      display: block; 
+      z-index: 10; 
+    }
+
+    .video-info {
+      position: absolute;
+      top: 10px;
+      left: 10px;
+      padding: 5px 10px;
+      background: rgba(0, 0, 0, 0.7);
+      border-radius: 5px;
+      font-size: 0.9rem;
+      z-index: 20; 
+    }
+
+    .emotion-display {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fbc02d; /* Highlight emotion */
+      min-height: 2.2rem;
+    }
+
+    .ai-face {
+      width: 120px;
+      height: 120px;
+      border: 2px solid #29b6f6;
+      border-radius: 50%;
+      margin: 0 auto;
+      background: url('https://cdn-icons-png.flaticon.com/512/4712/4712105.png') no-repeat center/contain;
+      animation: pulse 3s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 10px rgba(41,182,246,0.4); }
+      50% { box-shadow: 0 0 25px rgba(41,182,246,0.9); }
+      100% { box-shadow: 0 0 10px rgba(41,182,246,0.4); }
+    }
+    
+    .control-area {
+      display: flex;
+      justify-content: center; 
+      gap: 20px; /* Increased gap */
+      margin-top: 20px; 
+      min-height: 40px;
+      align-items: center;
+    }
+    
+    .control-area.pending {
+      border: 2px solid #fbc02d;
+      padding: 10px 15px; /* Added padding for better border separation */
+      border-radius: 8px;
+      animation: flashBorder 1s infinite alternate;
+      margin-bottom: 20px;
+    }
+    
+    @keyframes flashBorder {
+        from { border-color: rgba(251,192,45, 0.5); }
+        to { border-color: rgba(251,192,45, 1.0); }
+    }
+    
+    /* ------------------------ GESTURE GUIDE STYLING (NEW/MODIFIED) ------------------------ */
+    .gesture-guide-container {
+        padding: 15px;
+        background: rgba(251,192,45,0.1); /* Light background for visibility */
+        border-radius: 8px;
+        margin-top: 20px;
+        border-left: 5px solid #fbc02d; /* Highlight bar */
+    }
+    
+    .gesture-guide-container h3 {
+        color: #fbc02d; /* Highlight title color */
+        margin-top: 0;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    .gesture-guide-container ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    .gesture-guide-container ul li {
+        padding: 5px 0;
+        font-size: 0.95rem;
+        line-height: 1.4;
+    }
+
+    .gesture-guide-container ul li strong {
+        color: #29b6f6; /* Highlight the gesture keyword */
+        font-weight: 700;
+        margin-right: 5px;
+    }
+    
+    /* ------------------------ BUTTON STYLING ------------------------ */
+    .mood-input button, .control-button {
+      padding: 12px 25px; 
+      background: #29b6f6;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      color: white;
+      cursor: pointer;
+      transition: 0.3s;
+      flex-shrink: 0;
+      font-size: 1.05rem; 
+    }
+
+    .mood-input button:hover, .control-button:hover {
+      background: #fbc02d;
+      color: #203a43;
+    }
+    
+    /* ------------------------ RIGHT PANEL (INPUTS/PLAYLIST) ------------------------ */
+    .mood-input {
+      margin-top: 20px;
+      display: flex;
+      gap: 10px;
+    }
+
+    .mood-input input {
+      padding: 10px;
+      flex-grow: 1;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      color: #0f2027;
+    }
+
+    .playlist {
+      margin-top: 25px;
+      overflow-y: auto;
+      max-height: 350px;
+    }
+    
+    .playlist-title {
+        margin-bottom: 15px;
+        font-size: 1.2rem;
+        font-weight: 700;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
+        padding-bottom: 5px;
+    }
+
+    .song {
+      background: rgba(255,255,255,0.08);
+      border-left: 4px solid #ba68c8;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    .song:hover {
+      background: rgba(251,192,45,0.2);
+    }
+    
+    /* ------------------------ FOOTER ------------------------ */
+    footer {
+      text-align: center;
+      padding: 15px;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+
+  </style>
+</head>
+<body>
+  <header>AI Mood DJ — Vision & Gesture Controlled Spotify</header>
+
+  <div class="container">
+    <div class="left">
+      <div class="ai-face"></div>
+      <div class="emotion-display" id="emotion">Waiting for Emotion/Gesture...</div>
+      
+      <div class="video-overlay">
+        <video id="video" autoplay></video>
+        <canvas id="canvas" style="display:none;"></canvas>
+        <div class="video-info" id="video-state-info">State: WAITING</div>
+      </div>
+      
+      <div class="control-area" id="visionControls">
+      </div>
+      
+      <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+      
+      <div class="gesture-guide-container">
+          <h3>Gesture Quick Guide</h3>
+          <ul class="guide-list">
+              <li><strong>Open Hand:</strong> Load a default/context playlist (or PLAY)</li>
+              <li><strong>Left Swipe:</strong> Previous Track</li>
+              <li><strong>Right Swipe:</strong> Next Track</li>
+              <li><strong>Downward Swipe:</strong> STOP Playback</li>
+          </ul>
+      </div>
+      </div>
+    
+    <div class="right">
+      <h2>Manual Controls & Analysis</h2>
+      
+      <div class="mood-input">
+        <input type="text" id="moodInput" placeholder="Type mood (happy, rock, chill)">
+        <button onclick="sendMood()">Find Music</button>
+      </div>
+
+      <div class="mood-input" style="margin-top: 10px;">
+        <button onclick="analyzeCurrentTrack()" class="control-button" style="width: 100%; background: #ba68c8;">Analyze Current Song Mood</button>
+      </div>
+      
+      <div class="playlist-title">Current/Suggested Playlist</div>
+      <div class="playlist" id="playlist">
+        <p style="text-align: center; color: rgba(255,255,255,0.5);">Use the input above or a gesture to load a playlist.</p>
+      </div>
+    </div>
+  </div>
+
+  <footer id="status">Initializing system...</footer>
+
+  <script>
+    // Note: The original JavaScript functions (sendMood, handleVisionResponse, etc.) 
+    // rely on the Flask routes and global state definitions in the Python backend (app.py).
+    // This frontend code assumes the backend is running and functional.
+    
+    const video = document.getElementById('video');
+    const canvas = document.getElementById('canvas');
+    const statusEl = document.getElementById('status');
+    const playlistEl = document.getElementById('playlist');
+    const emotionEl = document.getElementById('emotion');
+    const visionControlsEl = document.getElementById('visionControls');
+    const videoStateInfoEl = document.getElementById('video-state-info');
+
+    let FACE_STATE = "waiting"; 
+    let intervalId = null;
+    let cameraActive = false;
+    
+    // --- 1. CAMERA INITIALIZATION ---
+    // This attempts to start the camera feed when the page loads
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => { 
+        video.srcObject = stream; 
+        cameraActive = true;
+        statusEl.innerText = "Camera active. Ready for detection.";
+        video.onloadedmetadata = () => {
+          // This should ideally be wrapped in a 'Start Camera' button handler if the user flow requires manual activation
+          // For now, we are starting the backend calls immediately after metadata loads (every 300ms)
+          if (intervalId) clearInterval(intervalId);
+          intervalId = setInterval(sendFrameToBackend, 300); 
+        };
+      })
+      .catch(err => { 
+        cameraActive = false;
+        statusEl.innerText = "Camera not accessible: " + err; 
+        if (intervalId) clearInterval(intervalId);
+      });
+      
+    // --- 2. TEXT/EMOJI RECOMMENDATION ---
+    async function sendMood() {
+      const mood = document.getElementById("moodInput").value.trim();
+      if (!mood) return alert("Enter a mood or emoji first!");
+
+      statusEl.innerText = "Searching for music based on mood...";
+      
+      const formData = new FormData();
+      formData.append("mood", mood);
+
+      const res = await fetch("/recommend/text", { method: "POST", body: formData });
+      const data = await res.json();
+      
+      if (data.status === "success") {
+        statusEl.innerText = data.message;
+        emotionEl.innerText = `Genre: ${data.genre.toUpperCase()}`;
+        // Assumes data.playlist contains the list of track objects from the backend
+        renderPlaylist(data.playlist); 
+        FACE_STATE = "waiting"; 
+        updateVisionControls();
+      } else {
+        statusEl.innerText = data.message;
+      }
+    }
+    
+    // --- 3. AUDIO FEATURE ANALYSIS ---
+    async function analyzeCurrentTrack() {
+        statusEl.innerText = "Analyzing current Spotify track...";
+        const res = await fetch("/analyze/current_track", { method: "POST", headers: { 'Content-Type': 'application/json' } });
+        const data = await res.json();
+        
+        statusEl.innerText = data.message;
+        const mood = data.analyzed_mood ? data.analyzed_mood.toUpperCase() : "N/A";
+        emotionEl.innerText = `Song Mood: ${mood}`;
+        alert(data.suggestion || data.message);
+    }
+
+    // --- 4. VISION LOOP: SEND FRAME TO BACKEND ---
+    function sendFrameToBackend() {
+      if (!cameraActive || video.readyState !== video.HAVE_ENOUGH_DATA) return;
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      // Draw the mirrored video frame onto the canvas
+      ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+      
+      const base64_frame = canvas.toDataURL('image/jpeg', 0.8);
+      
+      // CRITICAL CHECK: Don't send empty frames
+      if (base64_frame.length < 1000) return;
+
+      fetch('/recommend/vision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ frame: base64_frame, mode: 'face' })
+      })
+      .then(response => response.json())
+      .then(handleVisionResponse)
+      .catch(error => {
+        statusEl.innerText = "Error communicating with detection server.";
+      });
+    }
+    
+    // --- 5. VISION RESPONSE HANDLER ---
+    function handleVisionResponse(data) {
+        statusEl.innerText = data.message || "Running detection...";
+        
+        if (data.new_state) {
+            FACE_STATE = data.new_state;
+        } else if (data.status === "detected") {
+            FACE_STATE = "detected";
+        } else if (data.status.startsWith("gesture")) {
+            // A gesture action was executed, reset detection phase
+            FACE_STATE = "waiting"; 
+        }
+        
+        // Update the emotion display based on the most relevant information
+        if (data.emotion) {
+            emotionEl.innerText = `Detected: ${data.emotion.toUpperCase()}`;
+        } else if (data.action) {
+            emotionEl.innerText = `Gesture: ${data.action.toUpperCase()}`;
+        } else if (data.new_state === "playing") {
+             emotionEl.innerText = `Playback Active!`;
+        }
+        
+        updateVisionControls();
+    }
+    
+    // --- 6. DYNAMIC BUTTONS FOR VISION CONTROLS ---
+    function updateVisionControls() {
+        visionControlsEl.innerHTML = '';
+        visionControlsEl.classList.remove('pending');
+        videoStateInfoEl.innerText = `State: ${FACE_STATE.toUpperCase()}`;
+        
+        if (FACE_STATE === 'detected') {
+            visionControlsEl.classList.add('pending');
+            visionControlsEl.innerHTML = `
+                <button class="control-button" style="background: #28a745;" onclick="sendControlAction('play')">✅ PLAY Suggested</button>
+                <button class="control-button" style="background: #dc3545;" onclick="sendControlAction('reset')">❌ CANCEL/RESET</button>
+            `;
+        } else if (FACE_STATE === 'playing') {
+            visionControlsEl.innerHTML = `
+                <button class="control-button" style="background: #ffc107; color: #000;" onclick="sendControlAction('reset')">RESET Detection</button>
+                <p style="margin: 0; align-self: center; color: #ccc;">Playback Active. Control with Gestures!</p>
+            `;
+        } else {
+            visionControlsEl.innerHTML = `
+                <p style="margin: 0; align-self: center; color: #ccc;">Look at the camera for music suggestions, or use hand gestures.</p>
+            `;
+        }
+    }
+    
+    // --- 7. SEND CONFIRMATION/RESET ACTION ---
+    async function sendControlAction(action) {
+        statusEl.innerText = `Sending action: ${action}...`;
+        const res = await fetch('/play/confirmed', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ action: action })
+        });
+        const data = await res.json();
+        handleVisionResponse(data);
+    }
+
+    // --- 8. PLAYLIST RENDERING ---
+    function renderPlaylist(list) {
+      playlistEl.innerHTML = "";
+      const playlistTitle = document.createElement("div");
+      playlistTitle.className = "playlist-title";
+      playlistTitle.innerText = "Current/Suggested Playlist";
+      playlistEl.appendChild(playlistTitle);
+      
+      if (list && list.length > 0) {
+        list.forEach(track => {
+          const div = document.createElement("div");
+          div.className = "song";
+          div.innerHTML = `<b>${track.name}</b><br><small>${track.artists[0].name}</small>`;
+          playlistEl.appendChild(div);
+        });
+      } else {
+         playlistEl.innerHTML += '<p style="text-align: center; color: rgba(255,255,255,0.5);">No songs found for this request.</p>';
+      }
+    }
+    
+    // Initialize controls on load
+    updateVisionControls();
+    
+  </script>
+</body>
+</html>
